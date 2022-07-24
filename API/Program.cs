@@ -7,6 +7,7 @@ using API.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using API.Errors;
 using Microsoft.OpenApi.Models;
+using API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<StoreContext>(
     x => x.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
+
+builder.Services.AddApplicationServices();
+builder.Services.AddSwaggerDocumentation();
+builder.Services.AddCors(opt => {
+    opt.AddPolicy("CorsPolicy",policy=>{
+        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
+    });
+});
+
 
 var app = builder.Build();
 
@@ -45,11 +55,15 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseHttpsRedirection();
 
-//app.UseRouting();
+app.UseRouting();
 
 app.UseStaticFiles();
 
+app.UseCors("CorsPolicy");
+
 app.UseAuthorization();
+
+app.UseSwaggerDocumentation();
 
 app.MapControllers();
 
